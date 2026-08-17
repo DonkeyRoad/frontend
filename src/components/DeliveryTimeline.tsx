@@ -1,0 +1,18 @@
+import { useState } from "react";
+import { AlertTriangle } from "lucide-react";
+import { DELIVERY_STAGES, deliveryProgress } from "../data/delivery";
+import { journeyLabel } from "../lib/format";
+import type { JourneyCart } from "../types";
+
+export function DeliveryTimeline({ cart }: { cart: JourneyCart }) {
+  const [showIssue, setShowIssue] = useState(false);
+  const todayDay = cart.days[0];
+  return <div className="space-y-6">
+    <div className="rounded-xl bg-surface-dark text-white p-6 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div><p className="text-accent text-xs font-bold tracking-widest mb-2">TODAY'S DELIVERY</p><h3 className="text-xl font-bold">오늘 {todayDay?.sectionId}구간 짐 이동 중</h3><p className="text-white/70 text-sm mt-1">정시 순회 기준, 오늘 오후 4시까지 {todayDay?.dropoff} 도착 예정입니다.</p></div>
+      <div className="bg-card/10 rounded-lg px-4 py-3"><p className="text-xs text-white/60">최근 업데이트</p><p className="font-bold text-sm">오늘 11:20 · 이동중</p></div>
+    </div>
+    <div className="space-y-4">{cart.days.map((day) => { const progress = deliveryProgress(day.day); return <article key={`${cart.id}-delivery-${day.day}`} className="bg-card border border-foreground/10 rounded-xl p-6"><div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-6"><div><p className="text-xs text-label font-bold mb-1">{journeyLabel(day.day)} · {day.date} · {day.sectionId}구간</p><h4 className="font-bold text-foreground">{day.pickup} <span className="text-muted-foreground">→</span> {day.dropoff}</h4><p className="text-sm text-muted-foreground mt-1">가방 {day.bags}개 · 도착 목표 오후 4시 · {day.stay === "직접 입력" ? day.customStay : day.stay}</p></div><span className={`self-start px-3 py-1 rounded-full text-xs font-bold ${progress === 3 ? "bg-green-100 text-green-800" : progress === 2 ? "bg-secondary text-label" : "bg-secondary text-foreground"}`}>{DELIVERY_STAGES[progress]}</span></div><div className="grid grid-cols-4 gap-1">{DELIVERY_STAGES.map((stage, index) => <div key={stage} className="relative"><div className={`h-1.5 rounded-full ${index <= progress ? "bg-surface-dark" : "bg-[#E5E7E2]"}`} /><div className={`w-7 h-7 rounded-full mt-2 flex items-center justify-center text-xs font-bold ${index <= progress ? "bg-surface-dark text-white" : "bg-[#E5E7E2] text-muted-foreground"}`}>{index + 1}</div><p className={`text-[11px] mt-1 ${index <= progress ? "font-bold text-foreground" : "text-muted-foreground"}`}>{stage}</p><p className="text-[10px] text-muted-foreground">{index <= progress ? (index === progress ? "오늘 11:20" : "확인 완료") : "대기"}</p></div>)}</div></article>; })}</div>
+    <div className="rounded-xl border border-accent/30 bg-secondary p-5"><div className="flex items-start justify-between gap-4"><div className="flex gap-3"><AlertTriangle size={20} className="text-label shrink-0" /><div><h4 className="font-bold text-foreground">지연 또는 이슈가 발생했나요?</h4><p className="text-sm text-muted-foreground mt-1">악천후·입산통제·차량 이슈 등 지연 시 사유와 도착 예상 시간을 알림톡으로 먼저 안내하고, 실패 시 SMS로 발송합니다.</p></div></div><button onClick={() => setShowIssue(!showIssue)} className="text-sm text-foreground font-bold underline whitespace-nowrap">{showIssue ? "닫기" : "안내 보기"}</button></div>{showIssue && <div className="mt-4 pt-4 border-t border-accent/20 text-sm text-muted-foreground"><p><b className="text-foreground">예시 · 기상 악화 지연:</b> 안전 점검으로 도착이 1시간 지연될 수 있습니다. 일정 변경 또는 환불이 필요한 경우 고객센터에 문의해 주세요.</p><div className="flex gap-3 mt-3"><button className="bg-surface-dark text-white px-4 py-2 rounded font-bold text-xs">일정 변경 문의</button><button className="border border-foreground text-foreground px-4 py-2 rounded font-bold text-xs">환불 정책 확인</button></div></div>}</div>
+  </div>;
+}
